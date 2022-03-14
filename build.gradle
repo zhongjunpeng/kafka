@@ -770,9 +770,9 @@ project(':core') {
     compile libs.scalaReflect
     compile libs.scalaLogging
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12
-    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
+    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.30'
     compile libs.slf4jApi
     compile(libs.zookeeper) {
       exclude module: 'slf4j-log4j12'

@@ -48,19 +48,26 @@ import static org.apache.kafka.common.record.RecordBatch.NO_PARTITION_LEADER_EPO
 
 /**
  * A class encapsulating some of the logic around metadata.
+ * 封装围绕元数据的一些逻辑的类。即 Kafka集群元数据
  * <p>
  * This class is shared by the client thread (for partitioning) and the background sender thread.
+ * 这个类由客户端线程（用于分区）和后台发送者线程共享。
  *
  * Metadata is maintained for only a subset of topics, which can be added to over time. When we request metadata for a
  * topic we don't have any metadata for it will trigger a metadata update.
+ * 元数据只为主题的一个子集维护，这些主题可以随时间而添加。当我们为一个主题请求元数据时，我们没有任何元数据，因为它会触发元数据更新。
  * <p>
  * If topic expiry is enabled for the metadata, any topic that has not been used within the expiry interval
  * is removed from the metadata refresh set after an update. Consumers disable topic expiry since they explicitly
  * manage topics while producers rely on topic expiry to limit the refresh set.
+ *
+ * 如果为元数据启用了主题过期，则在更新后，过期时间间隔内未使用的任何主题都将从元数据刷新集中删除。消费者禁用主题过期，因为他们显式管理主题，而生产者则依赖主题过期来限制刷新集。
  */
 public class Metadata implements Closeable {
     private final Logger log;
+    // 两次更新元数据的请求的最小时间间隔，默认100ms
     private final long refreshBackoffMs;
+    // 过期时间 默认5min一次
     private final long metadataExpireMs;
     private int updateVersion;  // bumped on every metadata response
     private int requestVersion; // bumped on every new topic addition
@@ -69,6 +76,7 @@ public class Metadata implements Closeable {
     private KafkaException fatalException;
     private Set<String> invalidTopics;
     private Set<String> unauthorizedTopics;
+    // 缓存
     private MetadataCache cache = MetadataCache.empty();
     private boolean needFullUpdate;
     private boolean needPartialUpdate;

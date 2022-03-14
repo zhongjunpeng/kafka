@@ -31,20 +31,25 @@ import java.util.Set;
 
 /**
  * An immutable representation of a subset of the nodes, topics, and partitions in the Kafka cluster.
+ * kafka集群中节点、主题和分区子集的不变表示。
+ *
+ * Cluster 在Producer 初始化时并不会获取元数据，只是添加了 boostrap 的配置信息。
+ * 真正的第一次获取，实在第一次发送数据的是时候，也就是 producer.send() 方法中。
+ *
  */
 public final class Cluster {
 
     private final boolean isBootstrapConfigured;
-    private final List<Node> nodes;
-    private final Set<String> unauthorizedTopics;
-    private final Set<String> invalidTopics;
-    private final Set<String> internalTopics;
+    private final List<Node> nodes; // kafka broker节点 包含主机名，端口号等字段
+    private final Set<String> unauthorizedTopics; // 未被授权访问的 Topic 列表，如果 client 没有被授权访问某个 topic，那么就会放在这个列表里
+    private final Set<String> invalidTopics; // 无效的 topic
+    private final Set<String> internalTopics; // 权限方面
     private final Node controller;
-    private final Map<TopicPartition, PartitionInfo> partitionsByTopicPartition;
-    private final Map<String, List<PartitionInfo>> partitionsByTopic;
-    private final Map<String, List<PartitionInfo>> availablePartitionsByTopic;
-    private final Map<Integer, List<PartitionInfo>> partitionsByNode;
-    private final Map<Integer, Node> nodesById;
+    private final Map<TopicPartition, PartitionInfo> partitionsByTopicPartition; // TopicPartition 代表了一个分区；PartitionInfo 代表分区的详细信息
+    private final Map<String, List<PartitionInfo>> partitionsByTopic; // 每个topic所拥有的topic列表
+    private final Map<String, List<PartitionInfo>> availablePartitionsByTopic; // 每个topic有哪些当前可用的分区
+    private final Map<Integer, List<PartitionInfo>> partitionsByNode; // 每个broker上有哪些分区
+    private final Map<Integer, Node> nodesById; // broker.id -> node
     private final ClusterResource clusterResource;
     private final Map<String, Uuid> topicIds;
 
@@ -201,6 +206,7 @@ public final class Cluster {
 
     /**
      * Create a "bootstrap" cluster using the given list of host/ports
+     * cluster仅仅是在新建的 Cluster添加了bootstrap的配置信息，并无任何原参数信息。
      * @param addresses The addresses
      * @return A cluster for these hosts/ports
      */
@@ -288,6 +294,7 @@ public final class Cluster {
 
     /**
      * Get the number of partitions for the given topic.
+     * 获取给定主题的分区数。
      * @param topic The topic to get the number of partitions for
      * @return The number of partitions or null if there is no corresponding metadata
      */

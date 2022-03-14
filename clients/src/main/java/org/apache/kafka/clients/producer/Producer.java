@@ -40,16 +40,19 @@ public interface Producer<K, V> extends Closeable {
 
     /**
      * See {@link KafkaProducer#initTransactions()}
+     * 初始化事务
      */
     void initTransactions();
 
     /**
      * See {@link KafkaProducer#beginTransaction()}
+     * 事务开启
      */
     void beginTransaction() throws ProducerFencedException;
 
     /**
      * See {@link KafkaProducer#sendOffsetsToTransaction(Map, String)}
+     * 发送offset到事务器
      */
     void sendOffsetsToTransaction(Map<TopicPartition, OffsetAndMetadata> offsets,
                                   String consumerGroupId) throws ProducerFencedException;
@@ -62,11 +65,13 @@ public interface Producer<K, V> extends Closeable {
 
     /**
      * See {@link KafkaProducer#commitTransaction()}
+     * 事务提交
      */
     void commitTransaction() throws ProducerFencedException;
 
     /**
      * See {@link KafkaProducer#abortTransaction()}
+     * 事务中止
      */
     void abortTransaction() throws ProducerFencedException;
 

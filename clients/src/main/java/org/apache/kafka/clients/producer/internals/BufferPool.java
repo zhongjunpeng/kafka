@@ -16,13 +16,6 @@
  */
 package org.apache.kafka.clients.producer.internals;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.kafka.clients.producer.BufferExhaustedException;
 import org.apache.kafka.common.KafkaException;
 import org.apache.kafka.common.MetricName;
@@ -30,6 +23,13 @@ import org.apache.kafka.common.metrics.Metrics;
 import org.apache.kafka.common.metrics.Sensor;
 import org.apache.kafka.common.metrics.stats.Meter;
 import org.apache.kafka.common.utils.Time;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -112,6 +112,7 @@ public class BufferPool {
                                                + " on memory allocations.");
 
         ByteBuffer buffer = null;
+        // 获取内存加锁
         this.lock.lock();
 
         if (this.closed) {
@@ -121,19 +122,25 @@ public class BufferPool {
 
         try {
             // check if we have a free buffer of the right size pooled
+            // 检查当前申请的大小是否符合规定，并且有空闲的Bytebuffer，如果符合直接从free中返回一个
             if (size == poolableSize && !this.free.isEmpty())
                 return this.free.pollFirst();
 
             // now check if the request is immediately satisfiable with the
             // memory on hand or if we need to block
+            // 记录整个free队列的大小
             int freeListSize = freeSize() * this.poolableSize;
+            // 非池内可用空间大小加空闲队列的大小和我们要申请的空间大小比较
             if (this.nonPooledAvailableMemory + freeListSize >= size) {
                 // we have enough unallocated or pooled memory to immediately
                 // satisfy the request, but need to allocate the buffer
+                // 如果有足够的内存，那么会不断释放free队列里面的 ByteBuffer使 availableMemory 来满足这次申请
                 freeUp(size);
+                // 成功后重新计算可用内存的大小
                 this.nonPooledAvailableMemory -= size;
             } else {
                 // we are out of memory and will have to block
+                // 没有足够的内存可以被分配，需要被阻塞
                 int accumulated = 0;
                 Condition moreMemory = this.lock.newCondition();
                 try {

@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 /**
  * An internal mutable cache of nodes, topics, and partitions in the Kafka cluster. This keeps an up-to-date Cluster
  * instance which is optimized for read access.
+ * Kafka集群中节点、主题和分区的内部可变缓存。这将保持最新的集群实例，该实例针对读访问进行了优化。
  */
 public class MetadataCache {
     private final String clusterId;

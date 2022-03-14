@@ -45,11 +45,15 @@ public class ProducerInterceptors<K, V> implements Closeable {
      * The method calls {@link ProducerInterceptor#onSend(ProducerRecord)} method. ProducerRecord
      * returned from the first interceptor's onSend() is passed to the second interceptor onSend(), and so on in the
      * interceptor chain. The record returned from the last interceptor is returned from this method.
+     * 当客户端在键和值被序列化之前将记录发送给KafkaProducer时，就会调用该函数。
+     * 从第一个拦截器的onSend（）返回的ProducerRecord将传递给拦截器链中的第二个拦截器onSend（），依此类推。从最后一个拦截器返回的记录就是从这个方法返回的。
      *
      * This method does not throw exceptions. Exceptions thrown by any of interceptor methods are caught and ignored.
      * If an interceptor in the middle of the chain, that normally modifies the record, throws an exception,
      * the next interceptor in the chain will be called with a record returned by the previous interceptor that did not
      * throw an exception.
+     * 此方法不会引发异常。捕获并忽略任何拦截器方法引发的异常。如果中间链中的拦截器（通常修改记录）抛出异常，
+     * 则链中的下一个拦截器将被前一个拦截器返回的记录调用，该记录没有抛出异常。
      *
      * @param record the record from client
      * @return producer record to send to topic/partition

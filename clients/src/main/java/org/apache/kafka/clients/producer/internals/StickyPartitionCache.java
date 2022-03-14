@@ -18,12 +18,12 @@ package org.apache.kafka.clients.producer.internals;
 
 import org.apache.kafka.common.Cluster;
 import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.common.utils.Utils;
 
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.kafka.common.utils.Utils;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * An internal class that implements a cache used for sticky partitioning behavior. The cache tracks the current sticky
@@ -44,7 +44,9 @@ public class StickyPartitionCache {
     }
 
     public int nextPartition(String topic, Cluster cluster, int prevPartition) {
+        // 首先获取当前 topic 的所有分区信息的集合
         List<PartitionInfo> partitions = cluster.partitionsForTopic(topic);
+        // 获取分区的数目
         Integer oldPart = indexCache.get(topic);
         Integer newPart = oldPart;
         // Check that the current sticky partition for the topic is either not set or that the partition that 

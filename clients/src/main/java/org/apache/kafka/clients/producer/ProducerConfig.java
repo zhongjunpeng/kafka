@@ -50,6 +50,7 @@ public class ProducerConfig extends AbstractConfig {
      * CHANGE WILL BREAK USER CODE.
      */
 
+    // 配置信息，默认配置包含分区器等
     private static final ConfigDef CONFIG;
 
     /** <code>bootstrap.servers</code> */
@@ -59,10 +60,14 @@ public class ProducerConfig extends AbstractConfig {
     public static final String CLIENT_DNS_LOOKUP_CONFIG = CommonClientConfigs.CLIENT_DNS_LOOKUP_CONFIG;
 
     /** <code>metadata.max.age.ms</code> */
+    // 控制元数据的过期时间，默认为 300000ms,即 5分钟。如果元数据在此参数所限定的时间范围内没有进行更新，则会被强制更新
+    // 即使没有任何分区发生变化，或者有新的 broker 加入
     public static final String METADATA_MAX_AGE_CONFIG = CommonClientConfigs.METADATA_MAX_AGE_CONFIG;
     private static final String METADATA_MAX_AGE_DOC = CommonClientConfigs.METADATA_MAX_AGE_DOC;
 
     /** <code>metadata.max.idle.ms</code> */
+    // 控制生产者为空闲的主题缓存元数据的时间长度。 如果自上次生成主题以来过去的时间超过了元数据空闲持续时间，系统会忘记该主题的元数据，在下一次访问它时会强制执行元数据提取请求。
+    // 默认是 5 * 60 * 1000ms 即 5 分钟
     public static final String METADATA_MAX_IDLE_CONFIG = "metadata.max.idle.ms";
     private static final String METADATA_MAX_IDLE_DOC =
             "Controls how long the producer will cache metadata for a topic that's idle. If the elapsed " +
@@ -70,6 +75,7 @@ public class ProducerConfig extends AbstractConfig {
             "metadata is forgotten and the next access to it will force a metadata fetch request.";
 
     /** <code>batch.size</code> */
+    // 消息批次的大小
     public static final String BATCH_SIZE_CONFIG = "batch.size";
     private static final String BATCH_SIZE_DOC = "The producer will attempt to batch records together into fewer requests whenever multiple records are being sent"
                                                  + " to the same partition. This helps performance on both the client and the server. This configuration controls the "
@@ -102,6 +108,7 @@ public class ProducerConfig extends AbstractConfig {
                                            + "</ul>";
 
     /** <code>linger.ms</code> */
+    // 表示间隔多长时间会将缓冲区的数据发送出去
     public static final String LINGER_MS_CONFIG = "linger.ms";
     private static final String LINGER_MS_DOC = "The producer groups together any records that arrive in between request transmissions into a single batched request. "
                                                 + "Normally this occurs only under load when records arrive faster than they can be sent out. However in some circumstances the client may want to "
@@ -115,12 +122,15 @@ public class ProducerConfig extends AbstractConfig {
                                                 + "for example, would have the effect of reducing the number of requests sent but would add up to 5ms of latency to records sent in the absence of load.";
 
     /** <code>request.timeout.ms</code> */
+    // 消息的超时时间，也就是从消息发送到收到ACK响应的最长时长 默认值为30秒
+    // 配置控制客户端等待请求响应的最长时间。如果在超时时间过去之前未收到响应，则客户端将在必要时重新发送请求，或者在重试次数用尽时使请求失败。
     public static final String REQUEST_TIMEOUT_MS_CONFIG = CommonClientConfigs.REQUEST_TIMEOUT_MS_CONFIG;
     private static final String REQUEST_TIMEOUT_MS_DOC = CommonClientConfigs.REQUEST_TIMEOUT_MS_DOC
         + " This should be larger than <code>replica.lag.time.max.ms</code> (a broker configuration)"
         + " to reduce the possibility of message duplication due to unnecessary producer retries.";
 
     /** <code>delivery.timeout.ms</code> */
+    // 发送消息后（成功/失败）上报发送状态最大时间
     public static final String DELIVERY_TIMEOUT_MS_CONFIG = "delivery.timeout.ms";
     private static final String DELIVERY_TIMEOUT_MS_DOC = "An upper bound on the time to report success or failure "
             + "after a call to <code>send()</code> returns. This limits the total time that a record will be delayed "
@@ -135,12 +145,16 @@ public class ProducerConfig extends AbstractConfig {
     public static final String CLIENT_ID_CONFIG = CommonClientConfigs.CLIENT_ID_CONFIG;
 
     /** <code>send.buffer.bytes</code> */
+    // socket的发送缓冲区大小，默认 128 k
     public static final String SEND_BUFFER_CONFIG = CommonClientConfigs.SEND_BUFFER_CONFIG;
 
     /** <code>receive.buffer.bytes</code> */
+    // socket的接收缓冲区大小，默认 128 k
     public static final String RECEIVE_BUFFER_CONFIG = CommonClientConfigs.RECEIVE_BUFFER_CONFIG;
 
     /** <code>max.request.size</code> */
+    // 设置请求消息的最大大小，避免发送大量的请求，限制了单条消息的size与批次消息的size，
+    // 如果改变此值，需要注意服务器也需要进行相应设置，因为服务器也有接收消息的大小限制。
     public static final String MAX_REQUEST_SIZE_CONFIG = "max.request.size";
     private static final String MAX_REQUEST_SIZE_DOC =
         "The maximum size of a request in bytes. This setting will limit the number of record " +
@@ -149,12 +163,16 @@ public class ProducerConfig extends AbstractConfig {
         "has its own cap on the record batch size (after compression if compression is enabled) which may be different from this.";
 
     /** <code>reconnect.backoff.ms</code> */
+    // 尝试重新连接到给定主机之前等待的时间，重连间隔时间，默认值50ms
     public static final String RECONNECT_BACKOFF_MS_CONFIG = CommonClientConfigs.RECONNECT_BACKOFF_MS_CONFIG;
 
     /** <code>reconnect.backoff.max.ms</code> */
+    // 重新连接到反复无法连接的broker时等待的最长时间 1s
     public static final String RECONNECT_BACKOFF_MAX_MS_CONFIG = CommonClientConfigs.RECONNECT_BACKOFF_MAX_MS_CONFIG;
 
     /** <code>max.block.ms</code> */
+    // 当执行KafkaProducer.send() 和KafkaProducer.partitionsFor()时阻塞等待的时间，
+    // 之所以会阻塞时因为可能buffer满了或者获取元数据异常，那么超过这个时间就会抛出异常。默认值为 60s
     public static final String MAX_BLOCK_MS_CONFIG = "max.block.ms";
     private static final String MAX_BLOCK_MS_DOC = "The configuration controls how long the <code>KafkaProducer</code>'s <code>send()</code>, <code>partitionsFor()</code>, "
                                                     + "<code>initTransactions()</code>, <code>sendOffsetsToTransaction()</code>, <code>commitTransaction()</code> "
@@ -166,6 +184,8 @@ public class ProducerConfig extends AbstractConfig {
                                                     + "the transaction coordinator could not be discovered or did not respond within the timeout.";
 
     /** <code>buffer.memory</code> */
+    // 生产者可用于缓冲等待发送到服务器的记录的内存总字节数，如果客户端send的速度大于发送到broker的速度，且积压的消息大于这个设置的值，就会造成send阻塞，
+    // 也就是 RecordAccumulator 大小。这个值一般是够用的，默认是32M
     public static final String BUFFER_MEMORY_CONFIG = "buffer.memory";
     private static final String BUFFER_MEMORY_DOC = "The total bytes of memory the producer can use to buffer records waiting to be sent to the server. If records are "
                                                     + "sent faster than they can be delivered to the server the producer will block for <code>" + MAX_BLOCK_MS_CONFIG + "</code> after which it will throw an exception."
@@ -175,9 +195,11 @@ public class ProducerConfig extends AbstractConfig {
                                                     + "compression is enabled) as well as for maintaining in-flight requests.";
 
     /** <code>retry.backoff.ms</code> */
+    // 获取重试时间间隔 默认 100ms
     public static final String RETRY_BACKOFF_MS_CONFIG = CommonClientConfigs.RETRY_BACKOFF_MS_CONFIG;
 
     /** <code>compression.type</code> */
+    // 消息压缩类型
     public static final String COMPRESSION_TYPE_CONFIG = "compression.type";
     private static final String COMPRESSION_TYPE_DOC = "The compression type for all data generated by the producer. The default is none (i.e. no compression). Valid "
                                                        + " values are <code>none</code>, <code>gzip</code>, <code>snappy</code>, <code>lz4</code>, or <code>zstd</code>. "
@@ -198,12 +220,18 @@ public class ProducerConfig extends AbstractConfig {
     public static final String METRIC_REPORTER_CLASSES_CONFIG = CommonClientConfigs.METRIC_REPORTER_CLASSES_CONFIG;
 
     /** <code>max.in.flight.requests.per.connection</code> */
+    // 该参数指定了生产者在收到服务器响应之前可以发送多少个消息。它的值越高，就会占用越多的内存，不过也会提升吞吐量。把它设为 1可以保证消息是按照发送的顺序写入服务器的，即使发生了重试。
+    // 之前开启幂等要求max.in.flight.requests.per.connection=1主要是实现起来简单，无论是客户端还是broker端。后来producer端改进了代码，允许max.in.flight.requests.per.connection大于1的情况下也能保证幂等性
+    // max.in.flight.requests.per.connect = 1 限制客户端在单个连接上能够发送的未响应请求的个数。设置此值为1表示 producer 在 broker 返回响应请求之前，不能再向同一个 broker 发送请求。
+    // 假如现在我们的MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION设置成默认值5，发送了 1,2,3,4,5···,这服务器都没给我们返回响应，那消息6我们就不能继续再发了。
+    // 因为 Kafka的重试机制有可能会导致消息乱序，所以我们一般为了保证消息有序会把 MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION 设置为 1.
     public static final String MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION = "max.in.flight.requests.per.connection";
     private static final String MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION_DOC = "The maximum number of unacknowledged requests the client will send on a single connection before blocking."
                                                                             + " Note that if this setting is set to be greater than 1 and there are failed sends, there is a risk of"
                                                                             + " message re-ordering due to retries (i.e., if retries are enabled).";
 
     /** <code>retries</code> */
+    // retries 参数的值决定了生产者可以重发消息的次数，如果达到这个次数，生产者会放弃重试并返回错误。默认值为0表示不重试
     public static final String RETRIES_CONFIG = CommonClientConfigs.RETRIES_CONFIG;
     private static final String RETRIES_DOC = "Setting a value greater than zero will cause the client to resend any record whose send fails with a potentially transient error."
             + " Note that this retry is no different than if the client resent the record upon receiving the error."
@@ -230,19 +258,28 @@ public class ProducerConfig extends AbstractConfig {
     public static final String SOCKET_CONNECTION_SETUP_TIMEOUT_MAX_MS_CONFIG = CommonClientConfigs.SOCKET_CONNECTION_SETUP_TIMEOUT_MAX_MS_CONFIG;
 
     /** <code>connections.max.idle.ms</code> */
+    // 在指定毫秒数后关闭空闲连接，9 * 60 * 1000 = 9分钟
     public static final String CONNECTIONS_MAX_IDLE_MS_CONFIG = CommonClientConfigs.CONNECTIONS_MAX_IDLE_MS_CONFIG;
 
     /** <code>partitioner.class</code> */
+    // 默认分区器 DefaultPartitioner
     public static final String PARTITIONER_CLASS_CONFIG = "partitioner.class";
     private static final String PARTITIONER_CLASS_DOC = "Partitioner class that implements the <code>org.apache.kafka.clients.producer.Partitioner</code> interface.";
 
     /** <code>interceptor.classes</code> */
+    // 拦截器类
     public static final String INTERCEPTOR_CLASSES_CONFIG = "interceptor.classes";
     public static final String INTERCEPTOR_CLASSES_DOC = "A list of classes to use as interceptors. "
                                                         + "Implementing the <code>org.apache.kafka.clients.producer.ProducerInterceptor</code> interface allows you to intercept (and possibly mutate) the records "
                                                         + "received by the producer before they are published to the Kafka cluster. By default, there are no interceptors.";
 
     /** <code>enable.idempotence</code> */
+    // 设置为 true 则开启幂等性Producer，默认为false;
+    // enable.idempotence 设置为true 后，Producer 自动升级成幂等性 Producer，Kafka 会自动去重。
+    // Broker 会多保存一些字段，当 Producer 发送了相同字段值的消息后，Broker 能够自动知晓这些消息已经重复
+    // 作用范围：
+    //        1. 只能保证单分区上的幂等性，即一个幂等性 Producer 能够保证某个主题的一个分区上不出现重复消息
+    //        2. 只能实现单会话上的幂等性，这里的会话指的是 Producer 进程的一次运行后。当重启 Producer 进程后，幂等性不保证。
     public static final String ENABLE_IDEMPOTENCE_CONFIG = "enable.idempotence";
     public static final String ENABLE_IDEMPOTENCE_DOC = "When set to 'true', the producer will ensure that exactly one copy of each message is written in the stream. If 'false', producer "
                                                         + "retries due to broker failures, etc., may write duplicates of the retried message in the stream. "
@@ -257,6 +294,9 @@ public class ProducerConfig extends AbstractConfig {
             "If this value is larger than the transaction.max.timeout.ms setting in the broker, the request will fail with a <code>InvalidTxnTimeoutException</code> error.";
 
     /** <code> transactional.id </code> */
+    // 设置事务id值，启用事务性 Producer。事务性 Producer 保证多条消息原子性地写入多个分区中。这批消息要么全部成功，要么全部失败。事务性 Producer 也不惧进程重启。
+    // 事务性 Producer 开启的条件：1.开启 enable.idempotence = true;2.设置 Producer 端参数 transactional.id
+    // 除此之外，还要加上调用事务API,如initTransaction、beginTransaction、commitTransaction和abortTransaction，分别应对事务的初始化、事务开始、事务提交以及事务终止。
     public static final String TRANSACTIONAL_ID_CONFIG = "transactional.id";
     public static final String TRANSACTIONAL_ID_DOC = "The TransactionalId to use for transactional delivery. This enables reliability semantics which span multiple producer sessions since it allows the client to guarantee that transactions using the same TransactionalId have been completed prior to starting any new transactions. If no TransactionalId is provided, then the producer is limited to idempotent delivery. " +
             "If a TransactionalId is configured, <code>enable.idempotence</code> is implied. " +

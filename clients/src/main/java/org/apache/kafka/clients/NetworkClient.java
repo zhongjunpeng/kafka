@@ -531,6 +531,7 @@ public class NetworkClient implements KafkaClient {
                 send,
                 now);
         this.inFlightRequests.add(inFlightRequest);
+        // 用于网络通信 I/O TODO
         selector.send(new NetworkSend(clientRequest.destination(), send));
     }
 

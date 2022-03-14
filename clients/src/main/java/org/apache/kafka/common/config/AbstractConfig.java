@@ -107,6 +107,7 @@ public class AbstractConfig {
         this.originals = resolveConfigVariables(configProviderProps, (Map<String, Object>) originals);
         this.values = definition.parse(this.originals);
         this.used = Collections.synchronizedSet(new HashSet<>());
+        // ProducerConfig 继承 AbstractConfig,重写 postProcessParsedConfig 方法, 判断用户是否设置 client.id，若没有则自动设置为 producer-x
         Map<String, Object> configUpdates = postProcessParsedConfig(Collections.unmodifiableMap(this.values));
         for (Map.Entry<String, Object> update : configUpdates.entrySet()) {
             this.values.put(update.getKey(), update.getValue());

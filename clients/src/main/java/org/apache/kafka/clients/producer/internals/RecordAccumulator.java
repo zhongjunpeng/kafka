@@ -16,68 +16,55 @@
  */
 package org.apache.kafka.clients.producer.internals;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.kafka.clients.ApiVersions;
 import org.apache.kafka.clients.producer.Callback;
-import org.apache.kafka.common.utils.ProducerIdAndEpoch;
-import org.apache.kafka.common.Cluster;
-import org.apache.kafka.common.KafkaException;
-import org.apache.kafka.common.MetricName;
-import org.apache.kafka.common.Node;
-import org.apache.kafka.common.PartitionInfo;
-import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.*;
 import org.apache.kafka.common.errors.UnsupportedVersionException;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.metrics.Measurable;
 import org.apache.kafka.common.metrics.MetricConfig;
 import org.apache.kafka.common.metrics.Metrics;
-import org.apache.kafka.common.record.AbstractRecords;
-import org.apache.kafka.common.record.CompressionRatioEstimator;
-import org.apache.kafka.common.record.CompressionType;
-import org.apache.kafka.common.record.MemoryRecords;
-import org.apache.kafka.common.record.MemoryRecordsBuilder;
-import org.apache.kafka.common.record.Record;
-import org.apache.kafka.common.record.RecordBatch;
-import org.apache.kafka.common.record.TimestampType;
+import org.apache.kafka.common.record.*;
 import org.apache.kafka.common.utils.CopyOnWriteMap;
 import org.apache.kafka.common.utils.LogContext;
+import org.apache.kafka.common.utils.ProducerIdAndEpoch;
 import org.apache.kafka.common.utils.Time;
 import org.slf4j.Logger;
+
+import java.nio.ByteBuffer;
+import java.util.*;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This class acts as a queue that accumulates records into {@link MemoryRecords}
  * instances to be sent to the server.
+ * 这个类相当于一个队列，将消息累计到 MemoryRecords 然后再发送到 broker
  * <p>
  * The accumulator uses a bounded amount of memory and append calls will block when that memory is exhausted, unless
  * this behavior is explicitly disabled.
+ * 累加器使用有限的内存，当内存耗尽时，append调用将被阻塞，除非明确禁用此行为。
  */
 public final class RecordAccumulator {
 
     private final Logger log;
     private volatile boolean closed;
     private final AtomicInteger flushesInProgress;
+    // 标记往recordAccumulator 添加数据的线程的数量 因为 Producer KafkaProducer 是一个安全的类所以使用 Atomic 保证内存可见 下面会出现大量的内置锁来确定线程安全
     private final AtomicInteger appendsInProgress;
     private final int batchSize;
+    // 消息压缩方式，默认为 none
     private final CompressionType compression;
     private final int lingerMs;
     private final long retryBackoffMs;
     private final int deliveryTimeoutMs;
+    // 内存模型
     private final BufferPool free;
     private final Time time;
     private final ApiVersions apiVersions;
+    // Deque<ProducerBatch> 换成了发往对应的 TopicPartition的消息，每个 ProducerBatch 拥有一个 MemoryRecords 对象的引用，这才是消息最终存放的地方
     private final ConcurrentMap<TopicPartition, Deque<ProducerBatch>> batches;
+    // 未完成发送的 ProducerBatch 集合
     private final IncompleteBatches incomplete;
     // The following variables are only accessed by the sender thread, so we don't need to protect them.
     private final Set<TopicPartition> muted;
@@ -162,8 +149,10 @@ public final class RecordAccumulator {
 
     /**
      * Add a record to the accumulator, return the append result
+     * 添加一条记录到 累加器中，然会添加后的结果
      * <p>
      * The append result will contain the future metadata, and flag for whether the appended batch is full or a new batch is created
+     * 追加结果将包含未来的元数据，以及追加批次已满还是已创建新批次的标志
      * <p>
      *
      * @param tp The topic/partition to which this record is being sent
