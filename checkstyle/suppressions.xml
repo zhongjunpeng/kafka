@@ -216,6 +216,9 @@
     <suppress checks="(FinalLocalVariable|WhitespaceAround|LocalVariableName|ImportControl|AvoidStarImport)"
               files="Murmur3Test.java"/>
 
+    <suppress checks="(FinalLocalVariable|WhitespaceAround|LocalVariableName|ImportControl|AvoidStarImport)"
+              files="RecordAccumulator.java"/>
+
     <suppress checks="MethodLength"
               files="KStreamSlidingWindowAggregateTest.java"/>
 

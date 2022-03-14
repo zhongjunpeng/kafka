@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements. See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package kafka.examples;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -16,10 +32,9 @@ public class CustomConsumerProducerDemo {
 
         KafkaProducer<String, String> kafkaProducer = new KafkaProducer<>(properties);
         for (int i = 0; i < 5; i++) {
-            ProducerRecord<String, String> producerRecord = new ProducerRecord<>("first", "atguigu" + i);
             String messageStr = "Message_" + i;
-            long startTime = System.currentTimeMillis();
-            kafkaProducer.send(new ProducerRecord<>(KafkaProperties.TOPIC, String.valueOf(i), messageStr), new DemoCallBack(startTime, i, messageStr));
+            //long startTime = System.currentTimeMillis();
+            kafkaProducer.send(new ProducerRecord<>(KafkaProperties.TOPIC, String.valueOf(i), messageStr));
         }
         System.out.println("Producer sent " + 5 + " records successfully");
     }
