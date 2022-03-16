@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A wrapper for Thread that sets things up nicely
+ * 一个线程的包装器，可以很好地进行设置;注意这个是继承了 Thread 类,创建其对象即可调用 start() 方法启动线程
  */
 public class KafkaThread extends Thread {
 

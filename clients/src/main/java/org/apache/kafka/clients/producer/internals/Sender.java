@@ -237,6 +237,7 @@ public class Sender implements Runnable {
         log.debug("Starting Kafka producer I/O thread.");
 
         // main loop, runs until close is called
+        // sender 线程从缓冲区准备拉取数据
         while (running) {
             try {
                 runOnce();

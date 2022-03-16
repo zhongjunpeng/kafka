@@ -75,7 +75,7 @@ public class ProducerConfig extends AbstractConfig {
             "metadata is forgotten and the next access to it will force a metadata fetch request.";
 
     /** <code>batch.size</code> */
-    // 消息批次的大小
+    // 消息批次的大小 16K
     public static final String BATCH_SIZE_CONFIG = "batch.size";
     private static final String BATCH_SIZE_DOC = "The producer will attempt to batch records together into fewer requests whenever multiple records are being sent"
                                                  + " to the same partition. This helps performance on both the client and the server. This configuration controls the "
@@ -167,7 +167,7 @@ public class ProducerConfig extends AbstractConfig {
     public static final String RECONNECT_BACKOFF_MS_CONFIG = CommonClientConfigs.RECONNECT_BACKOFF_MS_CONFIG;
 
     /** <code>reconnect.backoff.max.ms</code> */
-    // 重新连接到反复无法连接的broker时等待的最长时间 1s
+    // 重新连接到反复无法连接的broker时等待的最长时间 1s, 也就是重连时间的
     public static final String RECONNECT_BACKOFF_MAX_MS_CONFIG = CommonClientConfigs.RECONNECT_BACKOFF_MAX_MS_CONFIG;
 
     /** <code>max.block.ms</code> */

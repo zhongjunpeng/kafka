@@ -446,7 +446,7 @@ public class KafkaProducer<K, V> implements Producer<K, V> {
             this.maxRequestSize = config.getInt(ProducerConfig.MAX_REQUEST_SIZE_CONFIG);
             // 设置缓冲区的大小，默认是 32M
             this.totalMemorySize = config.getLong(ProducerConfig.BUFFER_MEMORY_CONFIG);
-            // 设置压缩格式
+            // 设置压缩格式, 默认不压缩 none
             this.compressionType = CompressionType.forName(config.getString(ProducerConfig.COMPRESSION_TYPE_CONFIG));
 
             // 如果消息发送比可传递到服务器的快，生产者将阻塞max.block.ms之后，抛出异常。
@@ -508,8 +508,10 @@ public class KafkaProducer<K, V> implements Producer<K, V> {
             String ioThreadName = NETWORK_THREAD_PREFIX + " | " + clientId;
             /**
              * 将线程设置为后台线程
-             * kafka不直接启动sender线程，而是启动线程将sender传进去的原因是
+             * kafka 不直接启动 sender 线程，而是启动线程将 sender 传进去的原因是
              * 因为要将业务代码和线程相关的代码隔离开来，后续若要添加一些参数给这个线程，可以直接在 kafkaThread 里面进行修改
+             *
+             * 然而，在 Java 构造函数中启动线程，会造成 this 指针的逃逸
              */
             this.ioThread = new KafkaThread(ioThreadName, this.sender, true);
             // 启动发送消息的线程
@@ -527,8 +529,9 @@ public class KafkaProducer<K, V> implements Producer<K, V> {
 
     // visible for testing
     Sender newSender(LogContext logContext, KafkaClient kafkaClient, ProducerMetadata metadata) {
+        // 缓存请求的个数，默认是 5 个
         int maxInflightRequests = configureInflightRequests(producerConfig);
-        // 消息的超时时间，也就是从消息发送到收到ACK响应的最长时长
+        // 消息的超时时间，也就是从消息发送到收到ACK响应的最长时长，默认 30 s
         int requestTimeoutMs = producerConfig.getInt(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG);
         ChannelBuilder channelBuilder = ClientUtils.createChannelBuilder(producerConfig, time, logContext);
         ProducerMetrics metricsRegistry = new ProducerMetrics(this.metrics);
@@ -570,7 +573,7 @@ public class KafkaProducer<K, V> implements Producer<K, V> {
          *      producer发送数据到broker后，数据成功写入leader partition以后返回响应。
          *      数据 -> broker（leader partition）
          *   -1：
-         *       producer发送数据到broker后，数据要写入到leader partition里面，并且数据同步到所有的
+         *       producer发送数据到broker后，数据要写入到leader partition里面，并且数据同步到在 ISR 内所有的
          *       follower partition里面以后，才返回响应。
          *
          *       这样我们才能保证不丢数据。
